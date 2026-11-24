@@ -1,0 +1,11 @@
+[package]
+name = "serialflux-mcp"
+version = "0.1.0"
+edition = "2021"
+description = "Standalone Rust MCP server for Serial Flux"
+license = "MIT"
+
+[dependencies]
+rmcp = { version = "0.12", features = ["server", "transport-io", "macros"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-std"] }
+serde_json = "1"
