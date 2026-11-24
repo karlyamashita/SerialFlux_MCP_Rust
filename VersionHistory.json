@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.1.6",
+    "date": "2026-11-23",
+    "title": "Serial connection management",
+    "changes": [
+      "Add serial connection creation, configuration, rename, delete and reconnect tools.",
+      "Add ASCII escape handling, ASCII receive output and timed query."
+    ]
+  },
+  {
     "version": "0.1.5",
     "date": "2026-11-23",
     "title": "Version management",

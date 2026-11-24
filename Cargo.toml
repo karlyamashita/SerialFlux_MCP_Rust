@@ -1,6 +1,6 @@
 [package]
 name = "serialflux-mcp"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2021"
 description = "Standalone Rust MCP server for Serial Flux"
 license = "MIT"

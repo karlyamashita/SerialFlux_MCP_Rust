@@ -1,5 +1,9 @@
 # Version history
 
+## 0.1.6 — Serial connection management (2026-11-23)
+- Add serial connection creation, configuration, rename, delete and reconnect tools.
+- Add ASCII escape handling, ASCII receive output and timed query.
+
 ## 0.1.5 — Version management (2026-11-23)
 - Added version manager GUI and synchronized release history.
 - Added sf_version_history MCP tool.

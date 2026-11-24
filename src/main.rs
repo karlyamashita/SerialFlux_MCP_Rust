@@ -12,7 +12,7 @@ struct SerialFluxServer {
     tool_router: rmcp::handler::server::tool::ToolRouter<Self>,
 }
 
-#[derive(serde::Deserialize, schemars::JsonSchema)]
+#[derive(serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
 struct ConnectionArgs {
     /// Connection name or unique ID (case-insensitive).
     id: String,
@@ -21,6 +21,7 @@ struct ConnectionArgs {
 struct SendArgs {
     /// Connection name or unique ID (case-insensitive).
     id: String, data: String, format: String,
+    interpret_escapes: Option<bool>,
 }
 #[derive(serde::Deserialize, schemars::JsonSchema)]
 struct ReceiveArgs {
@@ -34,6 +35,32 @@ struct VersionHistoryArgs {
     limit: Option<u32>,
 }
 
+#[derive(serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
+struct CreateArgs {
+    name: String, connect: Option<bool>,
+    port: Option<String>, baud_rate: Option<u32>, data_bits: Option<u8>, parity: Option<String>, stop_bits: Option<f64>, flow_control: Option<String>, dtr: Option<bool>, rts: Option<bool>,
+}
+#[derive(serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
+struct ConfigureArgs {
+    id: String, reconnect: Option<bool>,
+    port: Option<String>, baud_rate: Option<u32>, data_bits: Option<u8>, parity: Option<String>, stop_bits: Option<f64>, flow_control: Option<String>, dtr: Option<bool>, rts: Option<bool>,
+}
+#[derive(serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
+struct RenameArgs { id: String, name: String, reconnect: Option<bool> }
+#[derive(serde::Deserialize, schemars::JsonSchema)]
+struct QueryArgs { id: String, data: String, format: String, interpret_escapes: Option<bool>, timeout_ms: Option<u32> }
+fn ascii_bytes(data: &str, escapes: bool) -> Result<Vec<u8>, String> {
+    if !data.is_ascii() { return Err("ASCII required".into()); }
+    if !escapes { return Ok(data.as_bytes().to_vec()); }
+    let mut it = data.bytes(); let mut out = Vec::new();
+    while let Some(b) = it.next() { if b != 92 { out.push(b); continue; }
+        out.push(match it.next() { Some(b'r') => 13, Some(b'n') => 10, Some(b't') => 9, Some(b'0') => 0, Some(b'b') => 8, Some(b'e') => 27, Some(92) => 92,
+            Some(b'x') => { let a = it.next().ok_or("Incomplete hex escape")?; let b = it.next().ok_or("Incomplete hex escape")?; let h = [a,b]; u8::from_str_radix(std::str::from_utf8(&h).map_err(|_| "Invalid hex escape")?,16).map_err(|_| "Invalid hex escape")? }, _ => return Err("Invalid escape; disable interpret_escapes for literal text".into()) });
+    } Ok(out)
+}
+async fn request_args(command: &str, args: impl serde::Serialize) -> String {
+    let mut value = serde_json::to_value(args).unwrap(); value["command"] = serde_json::json!(command); bridge_request(&value.to_string()).await.to_string()
+}
 #[tool_router]
 impl SerialFluxServer {
     fn new() -> Self {
@@ -84,7 +111,7 @@ impl SerialFluxServer {
     #[tool(description = "Send data to an already connected device. Format ascii, hex, or binary (space-separated 8-bit groups). No automatic newline.")]
     async fn sf_send(&self, Parameters(args): Parameters<SendArgs>) -> String {
         let bytes: Result<Vec<u8>, String> = match args.format.to_lowercase().as_str() {
-            "ascii" if args.data.is_ascii() => Ok(args.data.into_bytes()),
+            "ascii" if args.data.is_ascii() => ascii_bytes(&args.data, args.interpret_escapes.unwrap_or(true)),
             "hex" => { let h: String = args.data.chars().filter(|c| !c.is_whitespace()).collect();
                 if h.len()%2 != 0 || !h.is_ascii() { Err("Invalid hex".into()) } else { (0..h.len()).step_by(2).map(|i| u8::from_str_radix(&h[i..i+2],16).map_err(|_| "Invalid hex".into())).collect() } },
             "binary" => args.data.split_whitespace().map(|b| if b.len()==8 { u8::from_str_radix(b,2).map_err(|_| "Invalid binary".into()) } else { Err("Expected 8-bit groups".into()) }).collect(),
@@ -96,7 +123,30 @@ impl SerialFluxServer {
             Err(e) => serde_json::json!({"error":e}).to_string()
         }
     }
-    #[tool(description = "Read up to max_bytes from the MCP receive buffer without consuming bytes; returns hex")]
+    #[tool(description = "Create serial connection with SF defaults")]
+    async fn sf_create_connection(&self, Parameters(args): Parameters<CreateArgs>) -> String { request_args("create_connection", args).await }
+    #[tool(description = "Patch serial connection settings")]
+    async fn sf_configure_connection(&self, Parameters(args): Parameters<ConfigureArgs>) -> String { request_args("configure_connection", args).await }
+    #[tool(description = "Rename connection")]
+    async fn sf_rename_connection(&self, Parameters(args): Parameters<RenameArgs>) -> String { request_args("rename_connection", args).await }
+    #[tool(description = "Delete disconnected non-primary connection")]
+    async fn sf_delete_connection(&self, Parameters(args): Parameters<ConnectionArgs>) -> String { request_args("delete_connection", args).await }
+    #[tool(description = "Get connection configuration")]
+    async fn sf_get_connection_config(&self, Parameters(args): Parameters<ConnectionArgs>) -> String { request_args("get_connection_config", args).await }
+    #[tool(description = "Reconnect configured connection")]
+    async fn sf_reconnect(&self, Parameters(args): Parameters<ConnectionArgs>) -> String { request_args("reconnect", args).await }
+    #[tool(description = "Send and collect response for timeout_ms (default 1000, max 20000); clears MCP buffer first")]
+    async fn sf_query(&self, Parameters(args): Parameters<QueryArgs>) -> String {
+        let bytes: Result<Vec<u8>, String> = match args.format.to_lowercase().as_str() {
+            "ascii" if args.data.is_ascii() => ascii_bytes(&args.data, args.interpret_escapes.unwrap_or(true)),
+            "hex" => { let h: String = args.data.chars().filter(|c| !c.is_whitespace()).collect();
+                if h.len()%2 != 0 || !h.is_ascii() { Err("Invalid hex".into()) } else { (0..h.len()).step_by(2).map(|i| u8::from_str_radix(&h[i..i+2],16).map_err(|_| "Invalid hex".into())).collect() } },
+            "binary" => args.data.split_whitespace().map(|b| if b.len()==8 { u8::from_str_radix(b,2).map_err(|_| "Invalid binary".into()) } else { Err("Expected 8-bit groups".into()) }).collect(),
+            _ => Err("Expected ASCII, hex or binary".into())
+        };
+        match bytes { Ok(b) if !b.is_empty() && b.len() <= 4096 => { let hex = b.iter().map(|x| format!("{:02X}",x)).collect::<Vec<_>>().join(""); bridge_request(&serde_json::json!({"command":"query","id":args.id,"hex":hex,"timeout_ms":args.timeout_ms.unwrap_or(1000).clamp(1,20000)}).to_string()).await.to_string() }, Ok(_) => serde_json::json!({"error":"Send requires 1–4096 bytes"}).to_string(), Err(e) => serde_json::json!({"error":e}).to_string() }
+    }
+    #[tool(description = "Read up to max_bytes from the MCP receive buffer without consuming bytes; returns ASCII and hex")]
     async fn sf_receive(&self, Parameters(args): Parameters<ReceiveArgs>) -> String {
         bridge_request(&serde_json::json!({"command":"receive","id":args.id,"max_bytes":args.max_bytes}).to_string()).await.to_string()
     }
