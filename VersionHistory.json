@@ -1,0 +1,45 @@
+[
+  {
+    "version": "0.1.5",
+    "date": "2026-11-23",
+    "title": "Version management",
+    "changes": [
+      "Added version manager GUI and synchronized release history.",
+      "Added sf_version_history MCP tool."
+    ]
+  },
+  {
+    "version": "0.1.4",
+    "date": "",
+    "title": "Universal installer",
+    "changes": [
+      "Universal native x64/ARM64 NSIS installer.",
+      "Versioned installer and SHA-256 output in Downloads.",
+      "Offline HTML guide, desktop and Start Menu shortcuts, Python example."
+    ]
+  },
+  {
+    "version": "0.1.3",
+    "date": "",
+    "title": "Connection lookup",
+    "changes": [
+      "Connection names or unique IDs with compatible SF bridge."
+    ]
+  },
+  {
+    "version": "0.1.2",
+    "date": "",
+    "title": "Hardware control",
+    "changes": [
+      "Added connection control, send and receive tools."
+    ]
+  },
+  {
+    "version": "0.1.1",
+    "date": "",
+    "title": "Read-only bridge",
+    "changes": [
+      "Added Serial Flux named pipe integration."
+    ]
+  }
+]
