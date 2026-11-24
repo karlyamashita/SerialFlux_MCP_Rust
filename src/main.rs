@@ -49,6 +49,12 @@ struct ConfigureArgs {
 struct RenameArgs { id: String, name: String, reconnect: Option<bool> }
 #[derive(serde::Deserialize, schemars::JsonSchema)]
 struct QueryArgs { id: String, data: String, format: String, interpret_escapes: Option<bool>, timeout_ms: Option<u32> }
+#[derive(serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
+struct ProjectOpenArgs { path: String, unsaved_changes: Option<String> }
+#[derive(serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
+struct ProjectPolicyArgs { unsaved_changes: Option<String> }
+#[derive(serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
+struct ProjectSaveAsArgs { path: String, overwrite: Option<bool> }
 fn ascii_bytes(data: &str, escapes: bool) -> Result<Vec<u8>, String> {
     if !data.is_ascii() { return Err("ASCII required".into()); }
     if !escapes { return Ok(data.as_bytes().to_vec()); }
@@ -67,6 +73,22 @@ impl SerialFluxServer {
         Self { tool_router: Self::tool_router() }
     }
 
+    #[tool(description = "Current project information and modified status")]
+    async fn sf_project_info(&self) -> String { bridge_request("project_info").await.to_string() }
+    #[tool(description = "Recently opened project paths")]
+    async fn sf_project_list_recent(&self) -> String { bridge_request("project_list_recent").await.to_string() }
+    #[tool(description = "Save current named project")]
+    async fn sf_project_save(&self) -> String { bridge_request("project_save").await.to_string() }
+    #[tool(description = "Open full .sflux path; unsaved_changes reject (default), save or discard")]
+    async fn sf_project_open(&self, Parameters(args): Parameters<ProjectOpenArgs>) -> String { request_args("project_open", args).await }
+    #[tool(description = "Save to full .sflux path; overwrite defaults false")]
+    async fn sf_project_save_as(&self, Parameters(args): Parameters<ProjectSaveAsArgs>) -> String { request_args("project_save_as", args).await }
+    #[tool(description = "Reset to untitled project using SF New behavior; unsaved_changes reject, save or discard")]
+    async fn sf_project_new(&self, Parameters(args): Parameters<ProjectPolicyArgs>) -> String { request_args("project_new", args).await }
+    #[tool(description = "Close project and reset to untitled; unsaved_changes reject, save or discard")]
+    async fn sf_project_close(&self, Parameters(args): Parameters<ProjectPolicyArgs>) -> String { request_args("project_close", args).await }
+    #[tool(description = "Reload current project; unsaved_changes reject, save or discard")]
+    async fn sf_project_reload(&self, Parameters(args): Parameters<ProjectPolicyArgs>) -> String { request_args("project_reload", args).await }
     #[tool(description = "Return MCP server release history, newest first; optional limit")]
     async fn sf_version_history(&self, Parameters(args): Parameters<VersionHistoryArgs>) -> String {
         let mut entries: Vec<serde_json::Value> = match serde_json::from_str(include_str!("../VersionHistory.json")) {

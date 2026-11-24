@@ -1,5 +1,16 @@
 [
   {
+    "version": "0.1.7",
+    "date": "2026-11-24",
+    "title": "Project management",
+    "changes": [
+      "Add eight .sflux project management MCP tools.",
+      "Add separate project management and saving permissions.",
+      "Protect unsaved changes and Save As overwrites.",
+      "Update offline API documentation."
+    ]
+  },
+  {
     "version": "0.1.6",
     "date": "2026-11-23",
     "title": "Serial connection management",
