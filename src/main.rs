@@ -37,11 +37,37 @@ struct VersionHistoryArgs {
 
 #[derive(serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
 struct CreateArgs {
+    /// Serial (default), TcpClient, TcpServer or Udp. Existing type cannot be changed.
+    #[serde(rename = "type")]
+    connection_type: Option<String>,
+    /// TCP client hostname or IP.
+    host: Option<String>,
+    /// TCP client remote port (1–65535).
+    network_port: Option<u16>,
+    /// TCP server listen port or UDP local port.
+    local_port: Option<u16>,
+    /// UDP remote hostname or IP.
+    remote_address: Option<String>,
+    remote_port: Option<u16>,
+    broadcast: Option<bool>,
     name: String, connect: Option<bool>,
     port: Option<String>, baud_rate: Option<u32>, data_bits: Option<u8>, parity: Option<String>, stop_bits: Option<f64>, flow_control: Option<String>, dtr: Option<bool>, rts: Option<bool>,
 }
 #[derive(serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
 struct ConfigureArgs {
+    /// Serial (default), TcpClient, TcpServer or Udp. Existing type cannot be changed.
+    #[serde(rename = "type")]
+    connection_type: Option<String>,
+    /// TCP client hostname or IP.
+    host: Option<String>,
+    /// TCP client remote port (1–65535).
+    network_port: Option<u16>,
+    /// TCP server listen port or UDP local port.
+    local_port: Option<u16>,
+    /// UDP remote hostname or IP.
+    remote_address: Option<String>,
+    remote_port: Option<u16>,
+    broadcast: Option<bool>,
     id: String, reconnect: Option<bool>,
     port: Option<String>, baud_rate: Option<u32>, data_bits: Option<u8>, parity: Option<String>, stop_bits: Option<f64>, flow_control: Option<String>, dtr: Option<bool>, rts: Option<bool>,
 }
@@ -173,9 +199,9 @@ impl SerialFluxServer {
             Err(e) => serde_json::json!({"error":e}).to_string()
         }
     }
-    #[tool(description = "Create serial connection with SF defaults")]
+    #[tool(description = "Create Serial, TcpClient, TcpServer or Udp connection with SF defaults")]
     async fn sf_create_connection(&self, Parameters(args): Parameters<CreateArgs>) -> String { request_args("create_connection", args).await }
-    #[tool(description = "Patch serial connection settings")]
+    #[tool(description = "Patch Serial, TCP or UDP settings without changing connection type")]
     async fn sf_configure_connection(&self, Parameters(args): Parameters<ConfigureArgs>) -> String { request_args("configure_connection", args).await }
     #[tool(description = "Rename connection")]
     async fn sf_rename_connection(&self, Parameters(args): Parameters<RenameArgs>) -> String { request_args("rename_connection", args).await }

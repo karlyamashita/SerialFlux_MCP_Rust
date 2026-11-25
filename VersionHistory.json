@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.1.9",
+    "date": "2026-11-24",
+    "title": "TCP and UDP connection management",
+    "changes": [
+      "Extend existing connection tools to create and configure TCP Client, TCP Server and UDP profiles.",
+      "Return transport-specific configuration and validate network ports and hostnames.",
+      "Document network examples and existing transport limitations."
+    ]
+  },
+  {
     "version": "0.1.8",
     "date": "2026-11-24",
     "title": "Sequence management",

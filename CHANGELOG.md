@@ -1,5 +1,10 @@
 # Version history
 
+## 0.1.9 — TCP and UDP connection management (2026-11-24)
+- Extend existing connection tools to create and configure TCP Client, TCP Server and UDP profiles.
+- Return transport-specific configuration and validate network ports and hostnames.
+- Document network examples and existing transport limitations.
+
 ## 0.1.8 — Sequence management (2026-11-24)
 - Add twelve data sequence management, execution and wait tools.
 - Add independent sequence editing and execution permissions.
