@@ -1,5 +1,10 @@
 # Version history
 
+## 0.1.8 — Sequence management (2026-11-24)
+- Add twelve data sequence management, execution and wait tools.
+- Add independent sequence editing and execution permissions.
+- Use existing SF sequence conversion and checksum generation.
+
 ## 0.1.7 — Project management (2026-11-24)
 - Add eight .sflux project management MCP tools.
 - Add separate project management and saving permissions.

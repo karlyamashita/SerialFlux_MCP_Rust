@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.1.8",
+    "date": "2026-11-24",
+    "title": "Sequence management",
+    "changes": [
+      "Add twelve data sequence management, execution and wait tools.",
+      "Add independent sequence editing and execution permissions.",
+      "Use existing SF sequence conversion and checksum generation."
+    ]
+  },
+  {
     "version": "0.1.7",
     "date": "2026-11-24",
     "title": "Project management",

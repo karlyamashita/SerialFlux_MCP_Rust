@@ -55,6 +55,10 @@ struct ProjectOpenArgs { path: String, unsaved_changes: Option<String> }
 struct ProjectPolicyArgs { unsaved_changes: Option<String> }
 #[derive(serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
 struct ProjectSaveAsArgs { path: String, overwrite: Option<bool> }
+#[derive(serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
+struct SequenceEditArgs { id: Option<String>, name: Option<String>, data: Option<String>, format: Option<String>, group: Option<String>, documentation: Option<String>, checksum: Option<String>, connection_id: Option<String>, active: Option<bool>, answer: Option<String> }
+#[derive(serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
+struct SequenceRunArgs { id: String, connection_id: Option<String>, timeout_ms: Option<u32> }
 fn ascii_bytes(data: &str, escapes: bool) -> Result<Vec<u8>, String> {
     if !data.is_ascii() { return Err("ASCII required".into()); }
     if !escapes { return Ok(data.as_bytes().to_vec()); }
@@ -73,6 +77,30 @@ impl SerialFluxServer {
         Self { tool_router: Self::tool_router() }
     }
 
+    #[tool(description = "List send sequence; selector is name or index:N")]
+    async fn sf_list_send_sequences(&self) -> String { bridge_request("sequence_list_send").await.to_string() }
+    #[tool(description = "Get send sequence; selector is name or index:N")]
+    async fn sf_get_send_sequence(&self, Parameters(args): Parameters<ConnectionArgs>) -> String { request_args("sequence_get_send", args).await }
+    #[tool(description = "Create send sequence; selector is name or index:N")]
+    async fn sf_create_send_sequence(&self, Parameters(args): Parameters<SequenceEditArgs>) -> String { request_args("sequence_create_send", args).await }
+    #[tool(description = "Update send sequence; selector is name or index:N")]
+    async fn sf_update_send_sequence(&self, Parameters(args): Parameters<SequenceEditArgs>) -> String { request_args("sequence_update_send", args).await }
+    #[tool(description = "Delete send sequence; selector is name or index:N")]
+    async fn sf_delete_send_sequence(&self, Parameters(args): Parameters<ConnectionArgs>) -> String { request_args("sequence_delete_send", args).await }
+    #[tool(description = "List receive sequence; selector is name or index:N")]
+    async fn sf_list_receive_sequences(&self) -> String { bridge_request("sequence_list_receive").await.to_string() }
+    #[tool(description = "Get receive sequence; selector is name or index:N")]
+    async fn sf_get_receive_sequence(&self, Parameters(args): Parameters<ConnectionArgs>) -> String { request_args("sequence_get_receive", args).await }
+    #[tool(description = "Create receive sequence; selector is name or index:N")]
+    async fn sf_create_receive_sequence(&self, Parameters(args): Parameters<SequenceEditArgs>) -> String { request_args("sequence_create_receive", args).await }
+    #[tool(description = "Update receive sequence; selector is name or index:N")]
+    async fn sf_update_receive_sequence(&self, Parameters(args): Parameters<SequenceEditArgs>) -> String { request_args("sequence_update_receive", args).await }
+    #[tool(description = "Delete receive sequence; selector is name or index:N")]
+    async fn sf_delete_receive_sequence(&self, Parameters(args): Parameters<ConnectionArgs>) -> String { request_args("sequence_delete_receive", args).await }
+    #[tool(description = "Execute send data sequence; optional connection override, wait timeout max 20000 ms")]
+    async fn sf_execute_send_sequence(&self, Parameters(args): Parameters<SequenceRunArgs>) -> String { request_args("sequence_execute_send", args).await }
+    #[tool(description = "Wait receive data sequence; optional connection override, wait timeout max 20000 ms")]
+    async fn sf_wait_receive_sequence(&self, Parameters(args): Parameters<SequenceRunArgs>) -> String { request_args("sequence_wait_receive", args).await }
     #[tool(description = "Current project information and modified status")]
     async fn sf_project_info(&self) -> String { bridge_request("project_info").await.to_string() }
     #[tool(description = "Recently opened project paths")]
