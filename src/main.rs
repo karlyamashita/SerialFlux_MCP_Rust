@@ -37,12 +37,12 @@ struct VersionHistoryArgs {
 
 #[derive(serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
 struct CreateArgs {
-    /// Serial (default), TcpClient, TcpServer or Udp. Existing type cannot be changed.
+    /// Serial (default), TcpClient, TcpServer, Udp or SeggerRtt. Existing type cannot be changed.
     #[serde(rename = "type")]
     connection_type: Option<String>,
-    /// TCP client hostname or IP.
+    /// TCP client or J-Link RTT Telnet hostname or IP.
     host: Option<String>,
-    /// TCP client remote port (1–65535).
+    /// TCP client or RTT Telnet remote port (1–65535).
     network_port: Option<u16>,
     /// TCP server listen port or UDP local port.
     local_port: Option<u16>,
@@ -55,12 +55,12 @@ struct CreateArgs {
 }
 #[derive(serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
 struct ConfigureArgs {
-    /// Serial (default), TcpClient, TcpServer or Udp. Existing type cannot be changed.
+    /// Serial (default), TcpClient, TcpServer, Udp or SeggerRtt. Existing type cannot be changed.
     #[serde(rename = "type")]
     connection_type: Option<String>,
-    /// TCP client hostname or IP.
+    /// TCP client or J-Link RTT Telnet hostname or IP.
     host: Option<String>,
-    /// TCP client remote port (1–65535).
+    /// TCP client or RTT Telnet remote port (1–65535).
     network_port: Option<u16>,
     /// TCP server listen port or UDP local port.
     local_port: Option<u16>,
@@ -199,9 +199,9 @@ impl SerialFluxServer {
             Err(e) => serde_json::json!({"error":e}).to_string()
         }
     }
-    #[tool(description = "Create Serial, TcpClient, TcpServer or Udp connection with SF defaults")]
+    #[tool(description = "Create Serial, TcpClient, TcpServer, Udp or SeggerRtt connection with SF defaults")]
     async fn sf_create_connection(&self, Parameters(args): Parameters<CreateArgs>) -> String { request_args("create_connection", args).await }
-    #[tool(description = "Patch Serial, TCP or UDP settings without changing connection type")]
+    #[tool(description = "Patch Serial, TCP, UDP or J-Link RTT settings without changing connection type")]
     async fn sf_configure_connection(&self, Parameters(args): Parameters<ConfigureArgs>) -> String { request_args("configure_connection", args).await }
     #[tool(description = "Rename connection")]
     async fn sf_rename_connection(&self, Parameters(args): Parameters<RenameArgs>) -> String { request_args("rename_connection", args).await }
@@ -264,6 +264,10 @@ async fn bridge_request(command: &str) -> serde_json::Value {
     }).await;
     match result {
         Ok(Ok(value)) => value,
+        Ok(Err(error)) if error.raw_os_error() == Some(5) => serde_json::json!({
+            "bridge_connected":false,"error":error.to_string(),"os_error":5,
+            "hint":"Start Serial Flux and the MCP client under the same Windows account, normally without elevation. Close other SF instances and check shortcut compatibility settings."
+        }),
         Ok(Err(error)) => serde_json::json!({"bridge_connected":false,"error":error.to_string()}),
         Err(_) => serde_json::json!({"bridge_connected":false,"error":"Bridge request timed out"}),
     }

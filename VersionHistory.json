@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.1.10",
+    "date": "2026-11-24",
+    "title": "SEGGER J-Link RTT connection management",
+    "changes": [
+      "Add SeggerRtt connection creation and configuration using the existing SF RTT Telnet transport.",
+      "Support RTT hostname and port validation and existing connection, data and sequence tools.",
+      "Retain named pipe access fixes and document RTT setup and limitations."
+    ]
+  },
+  {
     "version": "0.1.9",
     "date": "2026-11-24",
     "title": "TCP and UDP connection management",

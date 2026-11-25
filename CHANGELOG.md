@@ -1,5 +1,10 @@
 # Version history
 
+## 0.1.10 — SEGGER J-Link RTT connection management (2026-11-24)
+- Add SeggerRtt connection creation and configuration using the existing SF RTT Telnet transport.
+- Support RTT hostname and port validation and existing connection, data and sequence tools.
+- Retain named pipe access fixes and document RTT setup and limitations.
+
 ## 0.1.9 — TCP and UDP connection management (2026-11-24)
 - Extend existing connection tools to create and configure TCP Client, TCP Server and UDP profiles.
 - Return transport-specific configuration and validate network ports and hostnames.
