@@ -97,12 +97,60 @@ fn ascii_bytes(data: &str, escapes: bool) -> Result<Vec<u8>, String> {
 async fn request_args(command: &str, args: impl serde::Serialize) -> String {
     let mut value = serde_json::to_value(args).unwrap(); value["command"] = serde_json::json!(command); bridge_request(&value.to_string()).await.to_string()
 }
+#[derive(serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
+struct PythonCreateArgs { source: String }
+#[derive(serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
+struct PythonUpdateArgs { id: String, source: String }
+#[derive(serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
+struct PythonDeleteArgs { id: String, discard: Option<bool> }
+#[derive(serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
+struct PythonOutputArgs { max_chars: Option<u32> }
+#[derive(serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
+struct LogConfigArgs { format: Option<String>, include_timestamps: Option<bool>, flush_every_line: Option<bool> }
+#[derive(serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
+struct LogReadArgs { max_bytes: Option<u32> }
+#[derive(serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
+struct LogExportArgs { path: String }
 #[tool_router]
 impl SerialFluxServer {
     fn new() -> Self {
         Self { tool_router: Self::tool_router() }
     }
 
+    #[tool(description = "List open Python tabs")]
+    async fn sf_list_python_scripts(&self) -> String { bridge_request("python_list").await.to_string() }
+    #[tool(description = "Get script source by tab ID")]
+    async fn sf_get_python_script(&self, Parameters(args): Parameters<ConnectionArgs>) -> String { request_args("python_get", args).await }
+    #[tool(description = "Create embedded Python tab")]
+    async fn sf_create_python_script(&self, Parameters(args): Parameters<PythonCreateArgs>) -> String { request_args("python_create", args).await }
+    #[tool(description = "Replace script source in editor")]
+    async fn sf_update_python_script(&self, Parameters(args): Parameters<PythonUpdateArgs>) -> String { request_args("python_update", args).await }
+    #[tool(description = "Close tab without deleting linked file; discard required for dirty tabs")]
+    async fn sf_delete_python_script(&self, Parameters(args): Parameters<PythonDeleteArgs>) -> String { request_args("python_delete", args).await }
+    #[tool(description = "Start Python script without breakpoints")]
+    async fn sf_run_python_script(&self, Parameters(args): Parameters<ConnectionArgs>) -> String { request_args("python_run", args).await }
+    #[tool(description = "Stop Python script")]
+    async fn sf_stop_python_script(&self, Parameters(args): Parameters<ConnectionArgs>) -> String { request_args("python_stop", args).await }
+    #[tool(description = "Get Python tab execution state")]
+    async fn sf_python_script_status(&self, Parameters(args): Parameters<ConnectionArgs>) -> String { request_args("python_status", args).await }
+    #[tool(description = "Read shared Python console tail")]
+    async fn sf_python_output(&self, Parameters(args): Parameters<PythonOutputArgs>) -> String { request_args("python_output", args).await }
+    #[tool(description = "Clear shared Python console")]
+    async fn sf_clear_python_output(&self) -> String { bridge_request("python_clear_output").await.to_string() }
+    #[tool(description = "Start existing SF global communication logger")]
+    async fn sf_start_logging(&self) -> String { bridge_request("logging_start").await.to_string() }
+    #[tool(description = "Stop communication logger")]
+    async fn sf_stop_logging(&self) -> String { bridge_request("logging_stop").await.to_string() }
+    #[tool(description = "Get logging status")]
+    async fn sf_logging_status(&self) -> String { bridge_request("logging_status").await.to_string() }
+    #[tool(description = "Get logging configuration")]
+    async fn sf_get_log_config(&self) -> String { bridge_request("logging_get_config").await.to_string() }
+    #[tool(description = "Patch log format and timestamp and flush options while stopped")]
+    async fn sf_configure_logging(&self, Parameters(args): Parameters<LogConfigArgs>) -> String { request_args("logging_configure", args).await }
+    #[tool(description = "Read tail of active or last captured log file")]
+    async fn sf_read_log(&self, Parameters(args): Parameters<LogReadArgs>) -> String { request_args("logging_read", args).await }
+    #[tool(description = "Copy last captured log file to new absolute path after stop")]
+    async fn sf_export_log(&self, Parameters(args): Parameters<LogExportArgs>) -> String { request_args("logging_export", args).await }
     #[tool(description = "List send sequence; selector is name or index:N")]
     async fn sf_list_send_sequences(&self) -> String { bridge_request("sequence_list_send").await.to_string() }
     #[tool(description = "Get send sequence; selector is name or index:N")]

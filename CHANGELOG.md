@@ -1,5 +1,10 @@
 # Version history
 
+## 0.1.11 — Python scripting and communication logging (2026-11-24)
+- Add Python tab creation, editing, execution, status and shared console tools.
+- Add global communication logging control, configuration, bounded read and export tools.
+- Add independent opt-in permissions for Python editing, execution, logging and export.
+
 ## 0.1.10 — SEGGER J-Link RTT connection management (2026-11-24)
 - Add SeggerRtt connection creation and configuration using the existing SF RTT Telnet transport.
 - Support RTT hostname and port validation and existing connection, data and sequence tools.

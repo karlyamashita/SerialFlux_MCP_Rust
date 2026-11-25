@@ -8,3 +8,6 @@ Run BuildInstaller.bat on Windows with Rust/rustup, Visual Studio C++ build tool
 
 ## Version management
 Run `VersionManager.bat` (Python with Tkinter required). New Release increments the patch version; Save Entry synchronizes Cargo metadata, JSON history, changelog and offline guide. Rebuild the installer to embed the new history. `sf_version_history` accepts optional `limit` (omit for all).
+
+## v0.1.11 automation
+Python editor tabs and global communication logging are available through 17 new tools. See Documentation/index.html for permissions and examples. Python execution is full-trust, not sandboxed.

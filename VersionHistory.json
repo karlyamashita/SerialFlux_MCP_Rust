@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.1.11",
+    "date": "2026-11-24",
+    "title": "Python scripting and communication logging",
+    "changes": [
+      "Add Python tab creation, editing, execution, status and shared console tools.",
+      "Add global communication logging control, configuration, bounded read and export tools.",
+      "Add independent opt-in permissions for Python editing, execution, logging and export."
+    ]
+  },
+  {
     "version": "0.1.10",
     "date": "2026-11-24",
     "title": "SEGGER J-Link RTT connection management",
